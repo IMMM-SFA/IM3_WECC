@@ -1,0 +1,25 @@
+{
+    "title": "GO WEST Grid Operations Model for the Western Interconnect",
+    "creators": [
+        {
+            "name": "Kerem Ziya Akdemir",
+            "affiliation": "North Carolina State University, Raleigh, NC, USA",
+            "orcid": "0000-0002-4532-3319"
+        },
+        {
+            "name": "Konstantinos Oikonomou",
+            "affiliation": "Pacific Northwest National Laboratory, Richland, WA, USA",
+            "orcid": "0000-0003-0785-2102"
+        },
+        {
+            "name": "Jordan Kern",
+            "affiliation": "North Carolina State University, Raleigh, NC, USA",
+            "orcid": "0000-0002-1999-0628"
+        },
+        {
+            "name": "Nathalie Voisin",
+            "affiliation": "Pacific Northwest National Laboratory, Richland, WA, USA",
+            "orcid": "0000-0002-6848-449X"
+        }
+    ]
+}
