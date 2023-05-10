@@ -29,16 +29,16 @@ all_BA_BA_connections = list(BA_to_BA_hurdle_data['BA_to_BA'])
 Years = [2020]
 
 # NODE_NUMBER = [75,100,125,150,175,200,225,250,275,300]
-NODE_NUMBER = [100]
+NODE_NUMBER = [125]
 
 # UC_TREATMENTS = ['_simple','_coal','_coal_gas']
 UC_TREATMENTS = ['_simple']
 
 # line_limit_MW_scaling = [25,50,75,100]
-line_limit_MW_scaling = [2000]
+line_limit_MW_scaling = [500]
 
 # BA_hurdle_scaling = list(range(0,1050,100))
-BA_hurdle_scaling = [0]
+BA_hurdle_scaling = [-100]
 
 Hydro_year = 2015
 
