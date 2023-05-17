@@ -179,7 +179,6 @@ for day in range(1,days+1):
         for i in K:
             instance.HorizonGenLimit[z,i] = max(0, instance.HorizonGenLimit[z,i].value - df_losses.loc[(day-1)*24+i,'Coal_All_n_ovr_200']/len(df_loss_dict['Coal_All_n_ovr_200'])) 
 
-   #NEED TO ADD MUST RUN GENERATION OUTAGES     
     for z in instance.buses:
         for i in K:
             instance.HorizonMustrunLimit[z,i] = max(0,instance.HorizonMustrunLimit[z,i].value - df_losses.loc[(day-1)*24+i,'Nuclear_ovr_1000']/len(nucs))        
