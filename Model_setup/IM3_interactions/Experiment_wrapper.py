@@ -20,13 +20,13 @@ from TELL_extractor import TELL_extract
 
 #Defining case name and details
 Years = [2020] #This does not affect the IM3 experiment year, it's just a notation to select the correct folder created by reduced network data allocation script
-NODE_NUMBER = [100]
+NODE_NUMBER = [125]
 
 # UC_TREATMENTS = ['_simple','_coal','_coal_gas']
 UC_TREATMENTS = ['_simple']
 
-line_limit_MW_scaling = [2000]
-BA_hurdle_scaling = [0]
+line_limit_MW_scaling = [500]
+BA_hurdle_scaling = [-100]
 
 # Climate_scenarios = ['rcp85cooler_ssp3', 'rcp85cooler_ssp5', 'rcp85hotter_ssp3','rcp85hotter_ssp5', 'rcp45cooler_ssp3', 'rcp45cooler_ssp5','rcp45hotter_ssp3', 'rcp45hotter_ssp5']
 Climate_scenarios = ['rcp45cooler_ssp3']
