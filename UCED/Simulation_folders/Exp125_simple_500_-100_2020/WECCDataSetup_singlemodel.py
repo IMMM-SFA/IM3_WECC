@@ -35,9 +35,9 @@ df_line_params = pd.read_csv('Inputs/line_params.csv',header=0)
 lines = list(df_line_params['line'])
 
 ##daily ts of hydro at nodal-level
-df_hydro_MAX = pd.read_csv('Inputs/Hydro_max.csv',header=0)
-df_hydro_MIN = pd.read_csv('Inputs/Hydro_min.csv',header=0)
-df_hydro_TOTAL = pd.read_csv('Inputs/Hydro_total.csv',header=0)
+df_hydro_MAX = pd.read_csv('Inputs/hydro_max.csv',header=0)
+df_hydro_MIN = pd.read_csv('Inputs/hydro_min.csv',header=0)
+df_hydro_TOTAL = pd.read_csv('Inputs/hydro_total.csv',header=0)
 
 empty = []
 sites = list(df_hydro_MAX.columns)
