@@ -461,9 +461,9 @@ def CERF_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,CERF_year,CS):
     hydro_timeseries_df_min.columns = ['bus_{}'.format(z) for z in hydro_timeseries_df_min.columns]
     hydro_timeseries_df_mean.columns = ['bus_{}'.format(z) for z in hydro_timeseries_df_mean.columns]
     
-    hydro_timeseries_df_max.to_csv('../Altered_simulation_folders/Exp{}{}_{}_{}_{}_{}/Inputs/hydro_max.csv'.format(NN,UC,T_p,BA_hurd,CERF_year,CS),index=None)
-    hydro_timeseries_df_min.to_csv('../Altered_simulation_folders/Exp{}{}_{}_{}_{}_{}/Inputs/hydro_min.csv'.format(NN,UC,T_p,BA_hurd,CERF_year,CS),index=None)
-    hydro_timeseries_df_mean.to_csv('../Altered_simulation_folders/Exp{}{}_{}_{}_{}_{}/Inputs/hydro_total.csv'.format(NN,UC,T_p,BA_hurd,CERF_year,CS),index=None)
+    hydro_timeseries_df_max.to_csv('../Altered_simulation_folders/Exp{}{}_{}_{}_{}_{}/Inputs/Hydro_max.csv'.format(NN,UC,T_p,BA_hurd,CERF_year,CS),index=None)
+    hydro_timeseries_df_min.to_csv('../Altered_simulation_folders/Exp{}{}_{}_{}_{}_{}/Inputs/Hydro_min.csv'.format(NN,UC,T_p,BA_hurd,CERF_year,CS),index=None)
+    hydro_timeseries_df_mean.to_csv('../Altered_simulation_folders/Exp{}{}_{}_{}_{}_{}/Inputs/Hydro_total.csv'.format(NN,UC,T_p,BA_hurd,CERF_year,CS),index=None)
     
     #Adding hydropower parameters to datagenparams file
     for q in all_buses_int:
