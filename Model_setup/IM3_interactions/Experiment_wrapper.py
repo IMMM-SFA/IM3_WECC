@@ -35,7 +35,9 @@ Hydro_year = 2015
 
 CERF_year = 2015 #IM3 experiment year
 TELL_year = 2020
-GCAM_year = 2015
+TELL_year_scaled = 2020
+GCAM_year = 2020
+Solar_wind_year = 2020
 
 ###################################################
 
@@ -76,13 +78,13 @@ for YY in Years:
                         copy('../../UCED/Simulation_folders/Exp{}/Inputs/west_2020_lostcap.csv'.format(case_name),path_2) #This needs to be changed
     
                         #Calling CERF extractor
-                        CERF_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,CERF_year,CS)
+                        CERF_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,CERF_year,CS,Solar_wind_year)
                         print('CERF extractor finished.')
                         #Calling GCAM extractor
                         GCAM_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,GCAM_year,CS,CERF_year)
                         print('GCAM extractor finished.')
                         #Calling TELL extractor
-                        TELL_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,TELL_year,CS,CERF_year)
+                        TELL_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,TELL_year,CS,CERF_year,TELL_year_scaled)
                         print('TELL extractor finished.')
                     
 
