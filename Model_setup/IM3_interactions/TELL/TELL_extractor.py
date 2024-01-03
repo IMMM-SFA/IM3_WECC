@@ -12,7 +12,7 @@ from shutil import copy
 from pathlib import Path
 import sys
 
-def TELL_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,TELL_year,CS,CERF_year):
+def TELL_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,TELL_year,CS,CERF_year,TELL_year_scaled):
     
     #Correcting the directory
     cwd = os.getcwd()
@@ -22,7 +22,7 @@ def TELL_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,TELL_year,CS,CERF_year):
     hours_2015 = pd.date_range(start='01-01-2015 00:00:00', end='12-31-2015 23:00:00', freq='H')
     
     #Reading TELL outputs and BA information
-    TELL_outputs_df = pd.read_csv('TELL_outputs/{}/TELL_Balancing_Authority_Hourly_Load_Data_{}_Scaled_{}.csv'.format(CS,TELL_year,TELL_year),header=0)
+    TELL_outputs_df = pd.read_csv('TELL_outputs/{}/TELL_Balancing_Authority_Hourly_Load_Data_{}_Scaled_{}.csv'.format(CS,TELL_year,TELL_year_scaled),header=0)
     
     df_BAs = pd.read_csv('../../../Data_setup/Time_series_data/BA_data/BAs.csv',header=0)
     GO_WEST_BAs = [*df_BAs['Abbreviation']]
@@ -83,7 +83,7 @@ def TELL_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,TELL_year,CS,CERF_year):
         if df_selected.loc[i,'Pd'] <0:
             weights.append(0)
         else:        
-            X = float(df_BA_totals.loc[df_BA_totals['Name']==area,'Total'])
+            X = float(df_BA_totals.loc[df_BA_totals['Name']==area,'Total'].iloc[0])
             W = (df_selected.loc[i,'Pd']/X)
             weights.append(W)
     df_selected['BA Load Weight'] = weights
