@@ -27,8 +27,8 @@ def CERF_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,CERF_year,CS,Solar_wind_year):
     generic_params = pd.read_excel('Reference_files/Generator_parameters.xlsx',header=0,index_col=0)
     
     #Reading solar and wind generator profiles
-    solar_cf_profiles = pd.read_csv('CERF_outputs/solar_gen_cf_{}.csv'.format(Solar_wind_year),header=0)
-    wind_cf_profiles = pd.read_csv('CERF_outputs/wind_gen_cf_{}.csv'.format(Solar_wind_year),header=0)
+    solar_profiles = pd.read_csv('CERF_outputs/solar_generation_{}_{}.zip'.format(CS, Solar_wind_year),header=0)
+    wind_profiles = pd.read_csv('CERF_outputs/wind_generation_{}_{}.zip'.format(CS, Solar_wind_year),header=0)
         
     #Defining all node numbers
     bus_information_df = pd.read_excel('../../Selected_nodes/Results_Excluded_Nodes_{}.xlsx'.format(NN),sheet_name='Bus',header=0)
@@ -37,9 +37,9 @@ def CERF_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,CERF_year,CS,Solar_wind_year):
     
     #Reading CERF generator outputs and organizing the generator related files depending on the year
     if CERF_year == 2015:
-        CERF_generators = pd.read_csv('CERF_outputs/infrastructure_{}_{}.csv'.format(CERF_year,CS),header=0)
+        CERF_generators = pd.read_csv('CERF_outputs/pre_existing_power_plant_data_{}.csv'.format(CS),header=0)
     else:
-        CERF_generators = pd.read_csv('CERF_outputs/cerf_for_go_{}_{}.csv'.format(CS,CERF_year),header=0)
+        CERF_generators = pd.read_csv('CERF_outputs/cerf_sitings_{}_{}.csv'.format(CS,CERF_year),header=0)
         
     #Filtering buses only present in GO WEST database and appending generator information
     CERF_generators_WEST = CERF_generators.loc[CERF_generators['lmp_zone'].isin(all_buses_int)].copy()
@@ -269,7 +269,7 @@ def CERF_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,CERF_year,CS,Solar_wind_year):
             
             #Altering solar timeseries by looking at generation
             plant_IDs_nodal_solar = [*sp_solar_nodal['cerf_plant_id']]
-            total_nodal_solar_generation = solar_cf_profiles.loc[:,plant_IDs_nodal_solar].sum(axis=1)
+            total_nodal_solar_generation = solar_profiles.loc[:,plant_IDs_nodal_solar].sum(axis=1)
             solar_timeseries_df.loc[:,q] = total_nodal_solar_generation.values
 
     solar_timeseries_df.columns = ['bus_{}'.format(z) for z in solar_timeseries_df.columns]
@@ -319,7 +319,7 @@ def CERF_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,CERF_year,CS,Solar_wind_year):
             
             #Altering wind timeseries by looking at generation
             plant_IDs_nodal_wind = [*sp_wind_nodal['cerf_plant_id']]
-            total_nodal_wind_generation = wind_cf_profiles.loc[:,plant_IDs_nodal_wind].sum(axis=1)
+            total_nodal_wind_generation = wind_profiles.loc[:,plant_IDs_nodal_wind].sum(axis=1)
             wind_timeseries_df.loc[:,q] = total_nodal_wind_generation.values
  
     wind_timeseries_df.columns = ['bus_{}'.format(z) for z in wind_timeseries_df.columns]
@@ -369,7 +369,7 @@ def CERF_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,CERF_year,CS,Solar_wind_year):
             
             #Altering offshorewind timeseries by looking at generation
             plant_IDs_nodal_offshorewind = [*sp_offshorewind_nodal['cerf_plant_id']]
-            total_nodal_offshorewind_generation = wind_cf_profiles.loc[:,plant_IDs_nodal_offshorewind].sum(axis=1)
+            total_nodal_offshorewind_generation = wind_profiles.loc[:,plant_IDs_nodal_offshorewind].sum(axis=1)
             offshorewind_timeseries_df.loc[:,q] = total_nodal_offshorewind_generation.values
 
     offshorewind_timeseries_df.columns = ['bus_{}'.format(z) for z in offshorewind_timeseries_df.columns]

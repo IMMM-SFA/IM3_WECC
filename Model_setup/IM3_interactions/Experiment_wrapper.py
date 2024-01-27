@@ -29,9 +29,9 @@ line_limit_MW_scaling = [500]
 BA_hurdle_scaling = [-100]
 
 # Climate_scenarios = ['rcp85cooler_ssp3', 'rcp85cooler_ssp5', 'rcp85hotter_ssp3','rcp85hotter_ssp5', 'rcp45cooler_ssp3', 'rcp45cooler_ssp5','rcp45hotter_ssp3', 'rcp45hotter_ssp5']
-Climate_scenarios = ['rcp45cooler_ssp3']
+Climate_scenarios = ['rcp45hotter_ssp3']
 
-Hydro_year = 2015
+Hydro_year = 2020
 
 CERF_year = 2015 #IM3 experiment year
 TELL_year = 2020
