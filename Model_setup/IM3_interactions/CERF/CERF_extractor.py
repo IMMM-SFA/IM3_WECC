@@ -69,9 +69,12 @@ def CERF_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,CERF_year,CS,Solar_wind_year):
         
         try:
             CERF_heatrate = CERF_generators_WEST.loc[j,'heat_rate_btu_per_kWh']/1000
-            CERF_VOM = CERF_generators_WEST.loc[j,'variable_om_usd_per_mwh']
         except KeyError:
             CERF_heatrate = -999
+
+        try:
+            CERF_VOM = CERF_generators_WEST.loc[j,'variable_om_usd_per_mwh']
+        except KeyError:
             CERF_VOM = -999
             
         if CERF_gen_type in CERF_gen_dict['Biomass_CERF_types']:
