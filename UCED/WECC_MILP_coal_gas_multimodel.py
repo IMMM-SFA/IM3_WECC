@@ -155,8 +155,8 @@ model.HorizonGenLimit = Param(model.Outage,model.hh_periods, within=NonNegativeR
 model.HorizonMustrunLimit = Param(model.buses,model.hh_periods, within=NonNegativeReals,mutable=True)
 
 #Fuel prices over simulation period
-model.SimFuelPrice = Param(model.Thermal,model.SD_periods, within=NonNegativeReals)
-model.FuelPrice = Param(model.Thermal,within = NonNegativeReals, mutable=True)
+model.SimFuelPrice = Param(model.Thermal,model.SD_periods, within=Reals)
+model.FuelPrice = Param(model.Thermal,within = Reals, mutable=True)
 
 ######=================================================########
 ######               Segment B.7                       ########
