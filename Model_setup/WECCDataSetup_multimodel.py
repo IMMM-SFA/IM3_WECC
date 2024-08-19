@@ -112,6 +112,9 @@ BA_to_BA_hurdle_data = pd.read_csv('Inputs/BA_to_BA_hurdle_scaled.csv',header=0)
 all_BA_BA_connections = list(BA_to_BA_hurdle_data['BA_to_BA'])
 BA_to_BA_transmission_matrix = pd.read_csv('Inputs/BA_to_BA_transmission_matrix.csv',header=0)
 
+#Storage datasets
+Storage_params = pd.read_csv('Inputs/storage_params.csv',header=0)
+bustostoragemap = pd.read_csv('Inputs/storage_mat.csv',header=0)
 
 ######=================================================########
 ######               Segment A.3                       ########
@@ -225,9 +228,16 @@ with open(''+str(data_name)+'.dat', 'w') as f:
             unit_name = unit_name.replace(' ','_')
             f.write(unit_name + ' ')
     f.write(';\n\n') 
+
+    # Storage sets
+    f.write('set Storage :=\n')
+    for stor in range(0,len(Storage_params)):
+        unit_name = Storage_params.loc[stor,'name']
+        unit_name = unit_name.replace(' ','_')
+        f.write(unit_name + ' ')
+    f.write(';\n\n')
     
-    
-    print('Gen sets')
+    print('Gen and storage sets')
 
 
 ######=================================================########
@@ -514,7 +524,23 @@ with open(''+str(data_name)+'.dat', 'w') as f:
             f.write(str(BA_to_BA_transmission_matrix.loc[i,j]) + '\t')
         f.write('\n')
     f.write(';\n\n')
+
+    #Storage to bus map
+    f.write('param BustoStorageMap:' +'\n')
+    f.write('\t')
+
+    for j in bustostoragemap.columns:
+        if j!= 'name':
+            f.write(j + '\t')
+    f.write(':=' + '\n')
+    for i in range(0,len(bustostoragemap)):   
+        for j in bustostoragemap.columns:
+            f.write(str(bustostoragemap.loc[i,j]) + '\t')
+        f.write('\n')
+    f.write(';\n\n')
     
+    print('Bus to storage')
+
 ######=================================================########
 ######               Segment A.10                       ########
 ######=================================================########
@@ -529,5 +555,29 @@ with open(''+str(data_name)+'.dat', 'w') as f:
     
     print('fuel prices')
 
+
+######=================================================########
+######               Segment A.11                       ########
+######=================================================########
+
+####### Storage parameters
+####### create parameter matrix for storage facilities
+    f.write('param:' + '\t')
+    for c in Storage_params.columns:
+        if c != 'name':
+            f.write(c + '\t')
+    f.write(':=\n\n')
+    for i in range(0,len(Storage_params)):    
+        for c in Storage_params.columns:
+            if c == 'name':
+                unit_name = Storage_params.loc[i,'name']
+                unit_name = unit_name.replace(' ','_')
+                unit_name = unit_name.replace('&','_')
+                unit_name = unit_name.replace('.','')
+                f.write(unit_name + '\t')  
+            else:
+                f.write(str((Storage_params.loc[i,c])) + '\t')               
+        f.write('\n')
+    f.write(';\n\n')    
 
 print ('Complete:',data_name)

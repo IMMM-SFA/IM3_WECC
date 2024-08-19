@@ -20,6 +20,9 @@ model.Biomass = Set()
 model.Geothermal = Set()
 model.OffshoreWind = Set()
 
+#Storage set
+model.Storage = Set()
+
 #all generators
 model.Thermal = model.Coal | model.Oil | model.Gas | model.Biomass | model.Geothermal 
 model.Generators = model.Thermal | model.Hydro | model.Solar | model.Wind | model.OffshoreWind
@@ -99,6 +102,18 @@ model.LinetoBusMap=Param(model.lines,model.buses)
 model.BustoUnitMap=Param(model.Generators,model.buses)
 model.ExchangeHurdle=Param(model.exchanges)
 model.ExchangeMap=Param(model.exchanges,model.lines, mutable=True)
+
+#Storage parameters
+model.s_typ = Param(model.Storage,within=Any)
+model.s_node = Param(model.Storage,within=Any)
+model.charge_rate = Param(model.Storage)
+model.discharge_rate = Param(model.Storage)
+model.duration = Param(model.Storage)
+model.max_SoC = Param(model.Storage)
+model.min_SoC = Param(model.Storage)
+model.charge_eff = Param(model.Storage)
+model.discharge_eff = Param(model.Storage)
+model.BustoStorageMap=Param(model.Storage,model.buses)
 
 # ### Transmission Loss as a %discount on production
 # model.TransLoss = Param(within=NonNegativeReals)
@@ -187,10 +202,15 @@ model.S = Var(model.buses,model.hh_periods, within=NonNegativeReals,initialize=0
 
 # transmission line variables 
 model.Flow= Var(model.lines,model.hh_periods,initialize=0)
-model.Theta= Var(model.buses,model.hh_periods)
+model.Theta= Var(model.buses,model.hh_periods, bounds=(-3.1415, 3.1415))
 
 #This is created to enforce a penalty on power flows, which prevents slack generation to be transmitted elsewhere in the grid. 
 model.DummyFlow = Var(model.lines,model.hh_periods,initialize=0)
+
+#Storage variables
+model.SoC = Var(model.Storage,model.HH_periods, within=NonNegativeReals)
+model.Charge = Var(model.Storage,model.hh_periods, within=NonNegativeReals,initialize=0)
+model.Discharge = Var(model.Storage,model.hh_periods, within=NonNegativeReals,initialize=0)
 
 ######=================================================########
 ######               Segment B.8                       ########
@@ -284,7 +304,7 @@ model.OffshoreWindConstraint= Constraint(model.OffshoreWind,model.hh_periods,rul
 
 
 ######=================================================########
-######               Segment B.11.1                    ########
+######               Segment B.11                      ########
 ######=================================================########
 
 def Nodal_Balance(model,z,i):
@@ -292,7 +312,9 @@ def Nodal_Balance(model,z,i):
     gen = sum(model.mwh[j,i]*model.BustoUnitMap[j,z] for j in model.Generators)    
     slack = model.S[z,i]
     must_run = model.HorizonMustrunLimit[z,i]
-    return gen + slack + must_run - power_flow == model.HorizonDemand[z,i] 
+    storage_charge = sum(model.Charge[j,i]*model.BustoStorageMap[j,z] for j in model.Storage)
+    storage_discharge = sum(model.Discharge[j,i]*model.BustoStorageMap[j,z] for j in model.Storage)  
+    return gen + slack + must_run - power_flow == model.HorizonDemand[z,i] + storage_charge - storage_discharge
 model.Node_Constraint = Constraint(model.buses,model.hh_periods,rule=Nodal_Balance)
 
 def Flow_line(model,l,i):
@@ -320,6 +342,48 @@ model.DummyFlow1_Constraint = Constraint(model.lines,model.hh_periods,rule=Dummy
 def DummyFlow2(model,l,i):
     return  model.DummyFlow[l,i] >= model.Flow[l,i]*-1
 model.DummyFlow2_Constraint = Constraint(model.lines,model.hh_periods,rule=DummyFlow2)
+
+######=================================================########
+######               Segment B.12                      ########
+######=================================================########
+
+#Storage constraints
+
+#Maximum charge and discharge rates
+def MaxCharge(model,j,i):
+    return model.Charge[j,i] <= model.charge_rate[j]    
+model.MaxCharge_Constraint= Constraint(model.Storage,model.hh_periods,rule=MaxCharge)
+
+def MaxCharge2(model,j,i):
+    return model.Charge[j,i] <= (model.max_SoC[j]-model.SoC[j,i-1])/model.charge_eff[j]
+model.MaxCharge2_Constraint= Constraint(model.Storage,model.hh_periods,rule=MaxCharge2)
+
+def MaxDischarge(model,j,i):
+    return model.Discharge[j,i] <= model.discharge_rate[j]    
+model.MaxDischarge_Constraint= Constraint(model.Storage,model.hh_periods,rule=MaxDischarge)
+
+def MaxDischarge2(model,j,i):
+    return model.Discharge[j,i] <= (model.SoC[j,i-1]-model.min_SoC[j])*model.discharge_eff[j]
+model.MaxDischarge2_Constraint= Constraint(model.Storage,model.hh_periods,rule=MaxDischarge2)
+
+#Maximum and minimum SoC values
+def MaximumSoC(model,j,i):
+    return model.SoC[j,i] <= model.max_SoC[j]    
+model.MaximumSoC_Constraint= Constraint(model.Storage,model.hh_periods,rule=MaximumSoC)
+
+def MinimumSoC(model,j,i):
+    return model.SoC[j,i] >= model.min_SoC[j]    
+model.MinimumSoC_Constraint= Constraint(model.Storage,model.hh_periods,rule=MinimumSoC)
+
+#SoC energy balance
+def SoCBalance(model,j,i):
+    return model.SoC[j,i] == model.SoC[j,i-1] + (model.Charge[j,i]*model.charge_eff[j]) - (model.Discharge[j,i]/model.discharge_eff[j])
+model.SoCBalance_Constraint= Constraint(model.Storage,model.hh_periods,rule=SoCBalance)
+
+#Discourage simultaneous charge and discharge
+def SimChargeDischarge(model,j,i):
+    return model.Discharge[j,i] <= model.discharge_rate[j]-((model.discharge_rate[j]/model.charge_rate[j])*model.Charge[j,i])
+model.SimChargeDischarge_Constraint= Constraint(model.Storage,model.hh_periods,rule=SimChargeDischarge)
 
 ######=================================================########
 ######               Segment B.13                      ########

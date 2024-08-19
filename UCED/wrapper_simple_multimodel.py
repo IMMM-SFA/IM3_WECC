@@ -21,21 +21,38 @@ import os
 my_cwd = os.getcwd()
 
 days = 365 # Max = 365
+day_start = 1
+day_end = days+1
 
 instance = m1.create_instance('WECC_data.dat')
 instance.dual = pyo.Suffix(direction=pyo.Suffix.IMPORT)
 
 Solvername = 'gurobi'
 Timelimit = 3600 # for the simulation of one day in seconds
-# Threadlimit = 8 # maximum number of threads to use
+Threadlimit = 8 # maximum number of threads to use
 
-opt = SolverFactory(Solvername)
-if Solvername == 'cplex':
-    opt.options['timelimit'] = Timelimit
-elif Solvername == 'gurobi':           
-    opt.options['TimeLimit'] = Timelimit
+if Solvername == 'HiGHS':
     
-# opt.options['threads'] = Threadlimit
+    from pyomo.contrib import appsi
+    opt = appsi.solvers.Highs()
+    opt.highs_options['presolve'] = "choose"
+    opt.highs_options['solver'] = "simplex"
+    opt.highs_options['parallel'] = "on"
+    opt.highs_options['run_crossover'] = "on"
+    opt.highs_options['time_limit'] = Timelimit
+    opt.highs_options['threads'] = Threadlimit
+    opt.highs_options['simplex_strategy'] = 2
+    opt.config.stream_solver = True
+
+else:
+
+    opt = SolverFactory(Solvername)
+    if Solvername == 'cplex':
+        opt.options['timelimit'] = Timelimit
+    elif Solvername == 'gurobi':           
+        opt.options['TimeLimit'] = Timelimit
+    
+    # opt.options['threads'] = Threadlimit
 
 H = instance.HorizonHours
 D = 2
@@ -52,6 +69,9 @@ flow=[]
 slack = []
 vlt_angle=[]
 duals=[]
+charge=[]
+discharge=[]
+SoC=[]
 
 df_generators = pd.read_csv('Inputs/data_genparams.csv',header=0)
 
@@ -62,7 +82,7 @@ df_loss_dict= np.load('Inputs/gen_outage_cat.npy',allow_pickle='TRUE').item()
 df_losses = pd.read_csv('Inputs/west_2020_lostcap.csv',header=0,index_col=0)
 
 #max here can be (1,365)
-for day in range(1,days+1):
+for day in range(day_start,day_end):
     
     for z in instance.buses:
     #load Demand and Reserve time series data
@@ -183,8 +203,21 @@ for day in range(1,days+1):
         for i in K:
             instance.HorizonMustrunLimit[z,i] = max(0,instance.HorizonMustrunLimit[z,i].value - df_losses.loc[(day-1)*24+i,'Nuclear_ovr_1000']/len(nucs))        
     
-    result = opt.solve(instance,tee=True,symbolic_solver_labels=True, load_solutions=False) ##,tee=True to check number of variables\n",
-    instance.solutions.load_from(result)  
+    if day == day_start:
+        for j in instance.Storage:
+            instance.SoC[j,0] = instance.min_SoC[j]
+            instance.SoC[j,0].fixed = True
+    else:
+        pass
+
+    print('Solving Started')
+
+    if Solvername == 'HiGHS':
+        opt.solve(instance)
+    
+    else:
+        result = opt.solve(instance,tee=True,symbolic_solver_labels=True, load_solutions=False) ##,tee=True to check solver log",
+        instance.solutions.load_from(result)  
     
     print('LP')
                         
@@ -193,11 +226,14 @@ for day in range(1,days+1):
         cobject = getattr(instance, str(c))
         if str(c) in ['Node_Constraint']:
             for index in cobject:
-                 if int(index[1]>0 and index[1]<25):
-                     try:
-                         duals.append((index[0],index[1]+((day-1)*24), instance.dual[cobject[index]]))
-                     except KeyError:
-                         duals.append((index[0],index[1]+((day-1)*24),-999))
+                if int(index[1]>0 and index[1]<25):
+                    try:
+                        if Solvername == 'HiGHS':
+                            duals.append((index[0],index[1]+((day-1)*24), [*opt.get_duals([instance.Node_Constraint[index[0],index[1]]]).values()][0]))
+                        else:
+                            duals.append((index[0],index[1]+((day-1)*24), instance.dual[cobject[index]]))
+                    except KeyError:
+                        duals.append((index[0],index[1]+((day-1)*24),-999))
 
     for v in instance.component_objects(Var, active=True):
         varobject = getattr(instance, str(v))
@@ -265,7 +301,22 @@ for day in range(1,days+1):
         if a=='Flow':    
             for index in varobject:
                 if int(index[1]>0 and index[1]<25):
-                    flow.append((index[0],index[1]+((day-1)*24),varobject[index].value))                                            
+                    flow.append((index[0],index[1]+((day-1)*24),varobject[index].value)) 
+
+        if a=='SoC':    
+            for index in varobject:
+                if int(index[1]>0 and index[1]<25):
+                    SoC.append((index[0],index[1]+((day-1)*24),varobject[index].value))   
+
+        if a=='Charge':    
+            for index in varobject:
+                if int(index[1]>0 and index[1]<25):
+                    charge.append((index[0],index[1]+((day-1)*24),varobject[index].value))
+
+        if a=='Discharge':    
+            for index in varobject:
+                if int(index[1]>0 and index[1]<25):
+                    discharge.append((index[0],index[1]+((day-1)*24),varobject[index].value))                                           
 
         # if a=='srsv':    
         #     for index in varobject:
@@ -286,7 +337,10 @@ for day in range(1,days+1):
             instance.mwh[j,0] = newval_1
             instance.mwh[j,0].fixed = True
             
-
+        for j in instance.Storage:
+            newval_2=instance.SoC[j,24].value
+            instance.SoC[j,0] = newval_2
+            instance.SoC[j,0].fixed = True
 
     print('Day {} is finished.'.format(day))
         
@@ -299,6 +353,9 @@ mwh_pd=pd.DataFrame(mwh,columns=('Generator','Type','Time','Value'))
 slack_pd = pd.DataFrame(slack,columns=('Node','Time','Value'))
 flow_pd = pd.DataFrame(flow,columns=('Line','Time','Value'))
 duals_pd = pd.DataFrame(duals,columns=['Bus','Time','Value'])
+SoC_pd=pd.DataFrame(SoC,columns=('Storage','Time','Value'))
+discharge_pd=pd.DataFrame(discharge,columns=('Storage','Time','Value'))
+charge_pd=pd.DataFrame(charge,columns=('Storage','Time','Value'))
 
 #to save outputs
 mwh_pd.to_parquet('Outputs/mwh.parquet', index=False)
@@ -310,5 +367,7 @@ vlt_angle_pd.to_parquet('Outputs/vlt_angle.parquet', index=False)
 slack_pd.to_parquet('Outputs/slack.parquet', index=False)
 flow_pd.to_parquet('Outputs/flow.parquet', index=False)
 duals_pd.to_parquet('Outputs/duals.parquet', index=False)
-
+SoC_pd.to_csv('Outputs/SoC.csv', index=False)
+discharge_pd.to_csv('Outputs/st_discharge.csv', index=False)
+charge_pd.to_csv('Outputs/st_charge.csv', index=False)
 

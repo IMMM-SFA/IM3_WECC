@@ -76,7 +76,11 @@ for YY in Years:
                         copy('../../UCED/Simulation_folders/Exp{}/Inputs/line_params.csv'.format(case_name),path_2)
                         copy('../../UCED/Simulation_folders/Exp{}/Inputs/line_to_bus.csv'.format(case_name),path_2)
                         copy('../../UCED/Simulation_folders/Exp{}/Inputs/west_2020_lostcap.csv'.format(case_name),path_2) #This needs to be changed
-    
+
+                        #Copying 2015 storage parameters
+                        copy('../../Data_setup/Storage_data/storage_params.csv',path_2)
+                        copy('../../Data_setup/Storage_data/storage_mat.csv',path_2)
+
                         #Calling CERF extractor
                         CERF_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,CERF_year,CS,Solar_wind_year)
                         print('CERF extractor finished.')

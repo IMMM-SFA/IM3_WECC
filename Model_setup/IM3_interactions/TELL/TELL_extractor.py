@@ -19,7 +19,7 @@ def TELL_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,TELL_year,CS,CERF_year,TELL_yea
     os.chdir("{}\\TELL".format(cwd[:-4]))
     
     #Creating artifical time series for filtering
-    hours_2015 = pd.date_range(start='01-01-2015 00:00:00', end='12-31-2015 23:00:00', freq='H')
+    hours_2015 = pd.date_range(start='01-01-2015 00:00:00', end='12-31-2015 23:00:00', freq='h')
     
     #Reading TELL outputs and BA information
     if TELL_year < 2020:
@@ -50,8 +50,8 @@ def TELL_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,TELL_year,CS,CERF_year,TELL_yea
     
     if len(df_load) > len(hours_2015):
         diff_num_hrs = 24-(len(df_load) - len(hours_2015))
-        hours_2020 = pd.date_range(start='01-01-2020 0{}:00:00'.format(diff_num_hrs), end='12-31-2020 23:00:00', freq='H')
-        feb_29_hours = pd.date_range(start='2-29-2020 0{}:00:00'.format(diff_num_hrs),end='2-29-2020 23:00:00', freq='H')
+        hours_2020 = pd.date_range(start='01-01-2020 0{}:00:00'.format(diff_num_hrs), end='12-31-2020 23:00:00', freq='h')
+        feb_29_hours = pd.date_range(start='2-29-2020 0{}:00:00'.format(diff_num_hrs),end='2-29-2020 23:00:00', freq='h')
         df_load.index = hours_2020
         df_load.drop(feb_29_hours,inplace=True)
         df_load.reset_index(drop=True,inplace=True) 

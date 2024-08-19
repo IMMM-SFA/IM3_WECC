@@ -187,7 +187,7 @@ model.S = Var(model.buses,model.hh_periods, within=NonNegativeReals,initialize=0
 
 # transmission line variables 
 model.Flow= Var(model.lines,model.hh_periods,initialize=0)
-model.Theta= Var(model.buses,model.hh_periods)
+model.Theta= Var(model.buses,model.hh_periods, bounds=(-3.1415, 3.1415))
 
 #This is created to enforce a penalty on power flows, which prevents slack generation to be transmitted elsewhere in the grid. 
 model.DummyFlow = Var(model.lines,model.hh_periods,initialize=0)
