@@ -227,7 +227,9 @@ def SysCost(model):
     solar_cost = sum(model.mwh[j,i]*0.01 for i in model.hh_periods for j in model.Solar)
     exchange_cost = sum(model.Flow[l,i]*model.ExchangeMap[k,l]*model.ExchangeHurdle[k] for l in model.lines for i in model.hh_periods for k in model.exchanges)
     powerflow_cost = sum(model.DummyFlow[l,i]*0.01 for l in model.lines for i in model.hh_periods)
-    return gen + slack + hydro_cost + wind_cost + solar_cost + exchange_cost + offshorewind_cost + powerflow_cost
+    charging_cost = sum(model.Charge[j,i]*0.001 for i in model.hh_periods for j in model.Storage)
+    discharging_cost = sum(model.Discharge[j,i]*0.001 for i in model.hh_periods for j in model.Storage)
+    return gen + slack + hydro_cost + wind_cost + solar_cost + exchange_cost + offshorewind_cost + powerflow_cost + charging_cost + discharging_cost
 
 model.SystemCost = Objective(rule=SysCost, sense=minimize)
 

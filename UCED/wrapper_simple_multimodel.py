@@ -39,7 +39,6 @@ if Solvername == 'HiGHS':
     opt.highs_options['solver'] = "simplex"
     opt.highs_options['parallel'] = "on"
     opt.highs_options['run_crossover'] = "on"
-    opt.highs_options['time_limit'] = Timelimit
     opt.highs_options['threads'] = Threadlimit
     opt.highs_options['simplex_strategy'] = 2
     opt.config.stream_solver = True
