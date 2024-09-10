@@ -25,9 +25,16 @@ def TELL_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,TELL_year,CS,CERF_year,TELL_yea
     if TELL_year < 2020:
         TELL_outputs_df = pd.read_csv('TELL_outputs/historic/TELL_Balancing_Authority_Hourly_Load_Data_{}_Scaled_{}.zip'.format(TELL_year,TELL_year_scaled),header=0)
         TELL_outputs_df_next = pd.read_csv('TELL_outputs/historic/TELL_Balancing_Authority_Hourly_Load_Data_{}_Scaled_{}.zip'.format(TELL_year+1,TELL_year_scaled+1),header=0) #Reading next year's dataset to change time zone from UTC to PST
+    
     else:
-        TELL_outputs_df = pd.read_csv('TELL_outputs/{}/TELL_Balancing_Authority_Hourly_Load_Data_{}_Scaled_{}.zip'.format(CS,TELL_year,TELL_year_scaled),header=0)
-        TELL_outputs_df_next = pd.read_csv('TELL_outputs/{}/TELL_Balancing_Authority_Hourly_Load_Data_{}_Scaled_{}.zip'.format(CS,TELL_year+1,TELL_year_scaled+1),header=0) #Reading next year's dataset to change time zone from UTC to PST
+
+        if TELL_year == 2099:
+            TELL_outputs_df = pd.read_csv('TELL_outputs/{}/TELL_Balancing_Authority_Hourly_Load_Data_{}_Scaled_{}.zip'.format(CS,TELL_year,TELL_year_scaled),header=0)
+            TELL_outputs_df_next = pd.read_csv('TELL_outputs/{}/TELL_Balancing_Authority_Hourly_Load_Data_{}_Scaled_{}.zip'.format(CS,TELL_year,TELL_year_scaled),header=0) #If year is 2099, as there are no data available for 2100, use the first couple of hours (e.g., 8 hours) of the existing data as the last hours to shift the time zone from UTC to PST
+
+        else:
+            TELL_outputs_df = pd.read_csv('TELL_outputs/{}/TELL_Balancing_Authority_Hourly_Load_Data_{}_Scaled_{}.zip'.format(CS,TELL_year,TELL_year_scaled),header=0)
+            TELL_outputs_df_next = pd.read_csv('TELL_outputs/{}/TELL_Balancing_Authority_Hourly_Load_Data_{}_Scaled_{}.zip'.format(CS,TELL_year+1,TELL_year_scaled+1),header=0) #Reading next year's dataset to change time zone from UTC to PST
     
     df_BAs = pd.read_csv('../../../Data_setup/Time_series_data/BA_data/BAs.csv',header=0)
     GO_WEST_BAs = [*df_BAs['Abbreviation']]

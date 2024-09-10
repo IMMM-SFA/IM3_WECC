@@ -27,11 +27,19 @@ def CERF_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,CERF_year,CS,Solar_wind_year):
     generic_params = pd.read_excel('Reference_files/Generator_parameters.xlsx',header=0,index_col=0)
     
     #Reading solar and wind generator profiles
-    solar_profiles = pd.read_csv('CERF_outputs/solar_generation_{}_{}.zip'.format(CS, Solar_wind_year),header=0)
-    solar_profiles_next = pd.read_csv('CERF_outputs/solar_generation_{}_{}.zip'.format(CS, Solar_wind_year+1),header=0)
-    
-    wind_profiles = pd.read_csv('CERF_outputs/wind_generation_{}_{}.zip'.format(CS, Solar_wind_year),header=0)
-    wind_profiles_next = pd.read_csv('CERF_outputs/wind_generation_{}_{}.zip'.format(CS, Solar_wind_year+1),header=0)
+    if Solar_wind_year == 2099:
+        solar_profiles = pd.read_csv('CERF_outputs/solar_generation_{}_{}.zip'.format(CS, Solar_wind_year),header=0)
+        solar_profiles_next = pd.read_csv('CERF_outputs/solar_generation_{}_{}.zip'.format(CS, Solar_wind_year),header=0) #If year is 2099, as there are no data available for 2100, use the first couple of hours (e.g., 8 hours) of the existing data as the last hours to shift the time zone from UTC to PST
+        
+        wind_profiles = pd.read_csv('CERF_outputs/wind_generation_{}_{}.zip'.format(CS, Solar_wind_year),header=0)
+        wind_profiles_next = pd.read_csv('CERF_outputs/wind_generation_{}_{}.zip'.format(CS, Solar_wind_year),header=0) #If year is 2099, as there are no data available for 2100, use the first couple of hours (e.g., 8 hours) of the existing data as the last hours to shift the time zone from UTC to PST
+
+    else:
+        solar_profiles = pd.read_csv('CERF_outputs/solar_generation_{}_{}.zip'.format(CS, Solar_wind_year),header=0)
+        solar_profiles_next = pd.read_csv('CERF_outputs/solar_generation_{}_{}.zip'.format(CS, Solar_wind_year+1),header=0) #Reading next year's dataset to change time zone from UTC to PST
+        
+        wind_profiles = pd.read_csv('CERF_outputs/wind_generation_{}_{}.zip'.format(CS, Solar_wind_year),header=0)
+        wind_profiles_next = pd.read_csv('CERF_outputs/wind_generation_{}_{}.zip'.format(CS, Solar_wind_year+1),header=0) #Reading next year's dataset to change time zone from UTC to PST
 
     #Defining time difference between UTC and PST to shift solar and wind timeseries
     Timezone_diff = 8
