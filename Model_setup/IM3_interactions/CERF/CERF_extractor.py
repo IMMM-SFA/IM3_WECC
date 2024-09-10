@@ -28,7 +28,13 @@ def CERF_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,CERF_year,CS,Solar_wind_year):
     
     #Reading solar and wind generator profiles
     solar_profiles = pd.read_csv('CERF_outputs/solar_generation_{}_{}.zip'.format(CS, Solar_wind_year),header=0)
+    solar_profiles_next = pd.read_csv('CERF_outputs/solar_generation_{}_{}.zip'.format(CS, Solar_wind_year+1),header=0)
+    
     wind_profiles = pd.read_csv('CERF_outputs/wind_generation_{}_{}.zip'.format(CS, Solar_wind_year),header=0)
+    wind_profiles_next = pd.read_csv('CERF_outputs/wind_generation_{}_{}.zip'.format(CS, Solar_wind_year+1),header=0)
+
+    #Defining time difference between UTC and PST to shift solar and wind timeseries
+    Timezone_diff = 8
         
     #Defining all node numbers
     bus_information_df = pd.read_excel('../../Selected_nodes/Results_Excluded_Nodes_{}.xlsx'.format(NN),sheet_name='Bus',header=0)
@@ -273,7 +279,10 @@ def CERF_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,CERF_year,CS,Solar_wind_year):
             #Altering solar timeseries by looking at generation
             plant_IDs_nodal_solar = [*sp_solar_nodal['cerf_plant_id']]
             total_nodal_solar_generation = solar_profiles.loc[:,plant_IDs_nodal_solar].sum(axis=1)
-            solar_timeseries_df.loc[:,q] = total_nodal_solar_generation.values
+            total_nodal_solar_generation_next = solar_profiles_next.loc[:,plant_IDs_nodal_solar].sum(axis=1)
+            
+            combined_solar = pd.concat([total_nodal_solar_generation.loc[Timezone_diff:],total_nodal_solar_generation_next.loc[:Timezone_diff-1]], axis=0, ignore_index=True)
+            solar_timeseries_df.loc[:,q] = combined_solar.values
 
     solar_timeseries_df.columns = ['bus_{}'.format(z) for z in solar_timeseries_df.columns]
     solar_timeseries_df.to_csv('../Altered_simulation_folders/Exp{}{}_{}_{}_{}_{}/Inputs/nodal_solar.csv'.format(NN,UC,T_p,BA_hurd,CERF_year,CS),index=None)
@@ -323,7 +332,10 @@ def CERF_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,CERF_year,CS,Solar_wind_year):
             #Altering wind timeseries by looking at generation
             plant_IDs_nodal_wind = [*sp_wind_nodal['cerf_plant_id']]
             total_nodal_wind_generation = wind_profiles.loc[:,plant_IDs_nodal_wind].sum(axis=1)
-            wind_timeseries_df.loc[:,q] = total_nodal_wind_generation.values
+            total_nodal_wind_generation_next = wind_profiles_next.loc[:,plant_IDs_nodal_wind].sum(axis=1)
+            
+            combined_wind = pd.concat([total_nodal_wind_generation.loc[Timezone_diff:],total_nodal_wind_generation_next.loc[:Timezone_diff-1]], axis=0, ignore_index=True)
+            wind_timeseries_df.loc[:,q] = combined_wind.values
  
     wind_timeseries_df.columns = ['bus_{}'.format(z) for z in wind_timeseries_df.columns]
     wind_timeseries_df.to_csv('../Altered_simulation_folders/Exp{}{}_{}_{}_{}_{}/Inputs/nodal_wind.csv'.format(NN,UC,T_p,BA_hurd,CERF_year,CS),index=None)
@@ -373,7 +385,10 @@ def CERF_extract(NN,UC,T_p,BA_hurd,YY,Hydro_year,CERF_year,CS,Solar_wind_year):
             #Altering offshorewind timeseries by looking at generation
             plant_IDs_nodal_offshorewind = [*sp_offshorewind_nodal['cerf_plant_id']]
             total_nodal_offshorewind_generation = wind_profiles.loc[:,plant_IDs_nodal_offshorewind].sum(axis=1)
-            offshorewind_timeseries_df.loc[:,q] = total_nodal_offshorewind_generation.values
+            total_nodal_offshorewind_generation_next = wind_profiles_next.loc[:,plant_IDs_nodal_offshorewind].sum(axis=1)
+            
+            combined_offshorewind = pd.concat([total_nodal_offshorewind_generation.loc[Timezone_diff:],total_nodal_offshorewind_generation_next.loc[:Timezone_diff-1]], axis=0, ignore_index=True)
+            offshorewind_timeseries_df.loc[:,q] = combined_offshorewind.values
 
     offshorewind_timeseries_df.columns = ['bus_{}'.format(z) for z in offshorewind_timeseries_df.columns]
     offshorewind_timeseries_df.to_csv('../Altered_simulation_folders/Exp{}{}_{}_{}_{}_{}/Inputs/nodal_offshorewind.csv'.format(NN,UC,T_p,BA_hurd,CERF_year,CS),index=None)
