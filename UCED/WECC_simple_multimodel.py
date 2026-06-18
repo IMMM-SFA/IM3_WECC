@@ -18,14 +18,13 @@ model.Solar = Set()
 model.Wind = Set()
 model.Biomass = Set()
 model.Geothermal = Set()
-model.OffshoreWind = Set()
 
 #Storage set
 model.Storage = Set()
 
 #all generators
 model.Thermal = model.Coal | model.Oil | model.Gas | model.Biomass | model.Geothermal 
-model.Generators = model.Thermal | model.Hydro | model.Solar | model.Wind | model.OffshoreWind
+model.Generators = model.Thermal | model.Hydro | model.Solar | model.Wind
 model.Dispatchable = model.Hydro | model.Oil | model.Gas | model.Coal | model.Biomass | model.Geothermal 
 model.Outage = model.Coal | model.Gas
 
@@ -162,7 +161,6 @@ model.SimHydro_MIN = Param(model.Hydro, model.SH_periods, within=NonNegativeReal
 model.SimHydro_TOTAL = Param(model.Hydro, model.SH_periods, within=NonNegativeReals)
 model.SimSolar = Param(model.Solar, model.SH_periods, within=NonNegativeReals)
 model.SimWind = Param(model.Wind, model.SH_periods, within=NonNegativeReals)
-model.SimOffshoreWind = Param(model.OffshoreWind, model.SH_periods, within=NonNegativeReals)
 #Lost capacity due to outage
 model.SimGenLimit = Param(model.Outage,model.SH_periods, within=NonNegativeReals)
 model.SimMustrunLimit = Param(model.buses,model.SH_periods, within=NonNegativeReals)
@@ -173,7 +171,6 @@ model.HorizonHydro_MIN = Param(model.Hydro,within=NonNegativeReals,mutable=True)
 model.HorizonHydro_TOTAL = Param(model.Hydro,within=NonNegativeReals,mutable=True)
 model.HorizonSolar = Param(model.Solar,model.hh_periods,within=NonNegativeReals,mutable=True)
 model.HorizonWind = Param(model.Wind,model.hh_periods,within=NonNegativeReals,mutable=True)
-model.HorizonOffshoreWind = Param(model.OffshoreWind,model.hh_periods,within=NonNegativeReals,mutable=True)
 #Lost capacity due to outage
 model.HorizonGenLimit = Param(model.Outage,model.hh_periods, within=NonNegativeReals,mutable=True)
 model.HorizonMustrunLimit = Param(model.buses,model.hh_periods, within=NonNegativeReals,mutable=True)
@@ -202,7 +199,7 @@ model.S = Var(model.buses,model.hh_periods, within=NonNegativeReals,initialize=0
 
 # transmission line variables 
 model.Flow= Var(model.lines,model.hh_periods,initialize=0)
-model.Theta= Var(model.buses,model.hh_periods, bounds=(-3.1415, 3.1415))
+model.Theta= Var(model.buses,model.hh_periods)
 
 #This is created to enforce a penalty on power flows, which prevents slack generation to be transmitted elsewhere in the grid. 
 model.DummyFlow = Var(model.lines,model.hh_periods,initialize=0)
@@ -223,13 +220,12 @@ def SysCost(model):
     slack = sum(model.S[z,i]*2000 for i in model.hh_periods for z in model.buses)
     hydro_cost = sum(model.mwh[j,i]*0.01 for i in model.hh_periods for j in model.Hydro)
     wind_cost = sum(model.mwh[j,i]*0.01 for i in model.hh_periods for j in model.Wind)
-    offshorewind_cost = sum(model.mwh[j,i]*0.01 for i in model.hh_periods for j in model.OffshoreWind)
     solar_cost = sum(model.mwh[j,i]*0.01 for i in model.hh_periods for j in model.Solar)
     exchange_cost = sum(model.Flow[l,i]*model.ExchangeMap[k,l]*model.ExchangeHurdle[k] for l in model.lines for i in model.hh_periods for k in model.exchanges)
     powerflow_cost = sum(model.DummyFlow[l,i]*0.01 for l in model.lines for i in model.hh_periods)
     charging_cost = sum(model.Charge[j,i]*0.001 for i in model.hh_periods for j in model.Storage)
     discharging_cost = sum(model.Discharge[j,i]*0.001 for i in model.hh_periods for j in model.Storage)
-    return gen + slack + hydro_cost + wind_cost + solar_cost + exchange_cost + offshorewind_cost + powerflow_cost + charging_cost + discharging_cost
+    return gen + slack + hydro_cost + wind_cost + solar_cost + exchange_cost + powerflow_cost + charging_cost + discharging_cost
 
 model.SystemCost = Objective(rule=SysCost, sense=minimize)
 
@@ -298,12 +294,6 @@ model.SolarConstraint= Constraint(model.Solar,model.hh_periods,rule=SolarC)
 def WindC(model,j,i): 
     return  model.mwh[j,i] <= model.HorizonWind[j,i]    
 model.WindConstraint= Constraint(model.Wind,model.hh_periods,rule=WindC)
-
-#Max capacity constraints on offshorewind
-def OffshoreWindC(model,j,i): 
-    return  model.mwh[j,i] <= model.HorizonOffshoreWind[j,i]    
-model.OffshoreWindConstraint= Constraint(model.OffshoreWind,model.hh_periods,rule=OffshoreWindC)
-
 
 ######=================================================########
 ######               Segment B.11                      ########

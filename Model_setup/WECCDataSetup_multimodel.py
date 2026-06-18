@@ -80,19 +80,7 @@ for i in sites:
 df_wind = df_wind.drop(columns=empty)
 
 
-##
-##hourly ts of dispatchable offshore wind-power at each plant
-df_offshorewind = pd.read_csv('Inputs/nodal_offshorewind.csv',header=0)
 
-empty = []
-sites = list(df_offshorewind.columns)
-for i in sites:
-    if sum(df_offshorewind[i]) > 0:
-        pass
-    else:
-        empty.append(i)
-
-df_offshorewind = df_offshorewind.drop(columns=empty)
 
 ##hourly ts of load at substation-level
 df_load = pd.read_csv('Inputs/nodal_load.csv',header=0) 
@@ -219,16 +207,6 @@ with open(''+str(data_name)+'.dat', 'w') as f:
             f.write(unit_name + ' ')
     f.write(';\n\n') 
     
-    # Offshore Wind
-    f.write('set OffshoreWind :=\n')
-    # pull relevant generators
-    for gen in range(0,len(df_gen)):
-        if df_gen.loc[gen,'typ'] == 'offshorewind':
-            unit_name = df_gen.loc[gen,'name']
-            unit_name = unit_name.replace(' ','_')
-            f.write(unit_name + ' ')
-    f.write(';\n\n') 
-
     # Storage sets
     f.write('set Storage :=\n')
     for stor in range(0,len(Storage_params)):
@@ -414,15 +392,6 @@ with open(''+str(data_name)+'.dat', 'w') as f:
     f.write(';\n\n')
     
     print('wind')
-    
-    f.write('param:' + '\t' + 'SimOffshoreWind:=' + '\n')
-    ow_gens = df_offshorewind.columns
-    for z in ow_gens:
-        for h in range(0,len(df_offshorewind)):
-            f.write(z + '_OFFSHOREWIND' + '\t' + str(h+1) + '\t' + str(df_offshorewind.loc[h,z]) + '\n')
-    f.write(';\n\n')
-    
-    print('offshorewind')
     
     # hydro (daily)
     f.write('param:' + '\t' + 'SimHydro_MAX:=' + '\n')

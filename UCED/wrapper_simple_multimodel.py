@@ -20,6 +20,7 @@ import os
 
 my_cwd = os.getcwd()
 
+year = 2019
 days = 365 # Max = 365
 day_start = 1
 day_end = days+1
@@ -78,7 +79,7 @@ df_generators = pd.read_csv('Inputs/data_genparams.csv',header=0)
 df_thermal = pd.read_csv('Inputs/thermal_gens.csv',header=0)
 nucs = df_thermal[df_thermal['Fuel']=='NUC (Nuclear)']
 df_loss_dict= np.load('Inputs/gen_outage_cat.npy',allow_pickle='TRUE').item()
-df_losses = pd.read_csv('Inputs/west_2020_lostcap.csv',header=0,index_col=0)
+df_losses = pd.read_csv(f'Inputs/west_{year}_lostcap.csv',header=0,index_col=0)
 
 #max here can be (1,365)
 for day in range(day_start,day_end):
@@ -105,11 +106,6 @@ for day in range(day_start,day_end):
     #load Wind time series data
         for i in K:
             instance.HorizonWind[z,i] = instance.SimWind[z,(day-1)*24+i]
-            
-    for z in instance.OffshoreWind:
-    #load OffshoreWind time series data
-        for i in K:
-            instance.HorizonOffshoreWind[z,i] = instance.SimOffshoreWind[z,(day-1)*24+i]
             
     for z in instance.Thermal:
     #load fuel prices for thermal generators
@@ -272,9 +268,6 @@ for day in range(day_start,day_end):
                     elif index[0] in instance.Wind:
                         # marginal_cost = 0
                         mwh.append((index[0],'Wind',index[1]+((day-1)*24),varobject[index].value))  
-                    elif index[0] in instance.OffshoreWind:
-                        # marginal_cost = 0
-                        mwh.append((index[0],'OffshoreWind',index[1]+((day-1)*24),varobject[index].value)) 
                     elif index[0] in instance.Biomass:
                         # marginal_cost = gen_heatrate*fuel_price
                         mwh.append((index[0],'Biomass',index[1]+((day-1)*24),varobject[index].value)) 

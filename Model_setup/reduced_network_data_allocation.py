@@ -26,7 +26,7 @@ BA_to_BA_hurdle_data = pd.read_csv('../Data_setup/BA_to_BA_data/BA_to_BA_hurdle.
 all_BA_BA_connections = list(BA_to_BA_hurdle_data['BA_to_BA'])
 
 # Years = [2019,2020,2021]
-Years = [2020]
+Years = [2019]
 
 # NODE_NUMBER = [75,100,125,150,175,200,225,250,275,300]
 NODE_NUMBER = [125]
@@ -35,12 +35,12 @@ NODE_NUMBER = [125]
 UC_TREATMENTS = ['_simple']
 
 # line_limit_MW_scaling = [25,50,75,100]
-line_limit_MW_scaling = [500]
+line_limit_MW_scaling = [800]
 
 # BA_hurdle_scaling = list(range(0,1050,100))
 BA_hurdle_scaling = [-100]
 
-Hydro_year = 2015
+Hydro_year = 2019
 
 for YY in Years:
     
@@ -1079,18 +1079,22 @@ for YY in Years:
                     Fuel_prices_all.columns = thermal_gens_names
                     
                     Fuel_prices_all.to_csv('Model_inputs/Fuel_prices.csv',index=None)
-                    copy('Model_inputs/Fuel_prices.csv',path+str(Path('/Inputs')))       
+                    copy('Model_inputs/Fuel_prices.csv',path+str(Path('/Inputs'))) 
+
+                    #Copying 2015 storage parameters
+                    copy('../Data_setup/Storage_data/storage_params.csv',path+str(Path('/Inputs')))
+                    copy('../Data_setup/Storage_data/storage_mat.csv',path+str(Path('/Inputs')))
         
                     #copy other files
-                    w = '../UCED/wrapper' + UC + '_singlemodel' + '.py'
-                    milp = '../UCED/WECC_MILP' + UC + '_singlemodel' + '.py'
-                    lp = '../UCED/WECC_LP' + UC + '_singlemodel' + '.py'
+                    w = '../UCED/wrapper' + UC + '_multimodel' + '.py'
+                    milp = '../UCED/WECC_MILP' + UC + '_multimodel' + '.py'
+                    lp = '../UCED/WECC_LP' + UC + '_multimodel' + '.py'
                     
                     copy(w,path)
-                    copy('WECCDataSetup_singlemodel.py',path)
+                    copy('WECCDataSetup_multimodel.py',path)
                     
                     if UC == '_simple':
-                        copy('../UCED/WECC' + UC + '_singlemodel' + '.py',path)
+                        copy('../UCED/WECC' + UC + '_multimodel' + '.py',path)
                     else:          
                         copy(milp,path)
                         copy(lp,path)
